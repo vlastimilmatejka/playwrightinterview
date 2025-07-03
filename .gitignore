@@ -40,3 +40,8 @@ build/
 # Misc
 .idea/
 *.tgz
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/

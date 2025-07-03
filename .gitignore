@@ -1,0 +1,42 @@
+Node modules
+node_modules/
+
+# Playwright test reports and output
+test-results/
+playwright-report/
+blob-report/
+*.zip
+
+# VSCode settings (optional)
+.vscode/
+
+# Environment files
+.env
+.env.*
+
+# Coverage reports
+coverage/
+*.lcov
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Compiled TypeScript output (if applicable)
+dist/
+build/
+*.tsbuildinfo
+
+# Playwright download folders
+.playwright/
+
+# Misc
+.idea/
+*.tgz

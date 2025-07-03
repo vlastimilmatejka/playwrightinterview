@@ -11,3 +11,17 @@ export const gdprSelectors = {
     acceptAll:".fc-data-preferences-accept-all",
     confirmChoices:".fc-confirm-choices"
 }
+
+export const loginSelectors = {
+    self:".login-form",
+    email:'[data-qa="login-email"]',
+    password:'[data-qa="login-password"]',
+    button:'[data-qa="login-button"]'
+}
+
+export const signUpSelectors = {
+    self:".signup-form",
+    name:'[data-qa="signup-name"]',
+    email:'[data-qa="signup-email"]',
+    button:'[data-qa="signup-button"]'
+}

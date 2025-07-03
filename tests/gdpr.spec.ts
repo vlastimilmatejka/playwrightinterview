@@ -1,19 +1,18 @@
-import { test, expect } from '@playwright/test';
+import {expect } from '@playwright/test';
 import BasePage from '../pages/base.page';
+import { test } from '../fixtures';
 
-test('GDPR direct agree', async ({ page }) => {
-    await page.goto('/');
-    const gdpr = new BasePage(page).gdprConsent();
-    
+test.beforeEach(async ({ page, basePage }) => {
+    await page.goto(basePage.getURL(test.info()));
+});
+
+test('GDPR direct agree', async ({ page, gdpr}) => {
     await expect(gdpr.self()).toBeVisible();
     gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test('GDPR manage options and accept all', async ({ page }) => {
-    await page.goto('/');
-    const gdpr = new BasePage(page).gdprConsent();
-    
+test('GDPR manage options and accept all', async ({ gdpr }) => { 
     await expect(gdpr.self()).toBeVisible();
     gdpr.manageOptions().click();
 
@@ -23,10 +22,7 @@ test('GDPR manage options and accept all', async ({ page }) => {
     await expect(gdpr.self()).toBeHidden();
 });
 
-test('GDPR manage options and confirm choices', async ({ page }) => {
-    await page.goto('/');
-    const gdpr = new BasePage(page).gdprConsent();
-    
+test('GDPR manage options and confirm choices', async ({ gdpr }) => { 
     await expect(gdpr.self()).toBeVisible();
     gdpr.manageOptions().click();
 

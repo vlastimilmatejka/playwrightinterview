@@ -1,9 +1,10 @@
 import GdprComponent from "../components/gdpr.component";
 import MainMenuComponent from "../components/mainMenu.component";
 import { Page } from 'playwright';
+import { test, expect, TestInfo } from '@playwright/test';
 
-export default class HomePage {
-   private page: Page;
+export default class BasePage {
+   public page: Page;
 
    constructor(page: Page) {
       this.page = page;
@@ -15,5 +16,10 @@ export default class HomePage {
 
    public gdprConsent() {
       return new GdprComponent(this.page);
+   }
+
+   public getURL( testinfo: TestInfo){
+      const url = '';
+      return testinfo.project.use.baseURL + url;
    }
 }

@@ -1,4 +1,4 @@
-export const mainMenuItemsEN = [
+export const mainMenuItemsNotLoggedEN = [
   "Home",
   "Products",
   "Cart",

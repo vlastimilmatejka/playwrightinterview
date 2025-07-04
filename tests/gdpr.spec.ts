@@ -1,6 +1,6 @@
 import {expect } from '@playwright/test';
 import BasePage from '../pages/base.page';
-import { test } from '../fixtures';
+import { test } from '../support/fixtures';
 
 test.beforeEach(async ({ page, basePage }) => {
     await page.goto(basePage.getURL(test.info()));

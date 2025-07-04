@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { gdprSelectors } from '../testSelectors';
+import { gdprSelectors } from '../support/testSelectors';
 
 export default class GdprComponent {
 

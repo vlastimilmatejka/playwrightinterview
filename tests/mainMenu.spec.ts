@@ -1,7 +1,7 @@
-import { mainMenuSelectors } from "../testSelectors";
-
+import { mainMenuSelectors } from "../support/testSelectors";
+import BasePage from "../pages/base.page";
 import { mainMenuItemsNotLoggedEN } from '../enums/Languages/EN/mainMenuENtranslations.enum';
-import { test} from '../fixtures';
+import { test } from '../support/fixtures';
 import { expect } from '@playwright/test';
 
 test.beforeEach(async ({ page, gdpr }) => {

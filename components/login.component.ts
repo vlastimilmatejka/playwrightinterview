@@ -1,5 +1,5 @@
-import { expect, type Page } from '@playwright/test';
-import { loginSelectors } from '../testSelectors';
+import { expect, type Page, type Locator } from '@playwright/test';
+import { loginSelectors } from '../support/testSelectors';
 
 export default class LoginComponent {
 
@@ -9,7 +9,10 @@ export default class LoginComponent {
         this.page = page;
     }
 
-    self() {
+    self(id?: number){
+        if (id !== undefined) {
+            return this.page.locator(loginSelectors.self).nth(id);
+        }
         return this.page.locator(loginSelectors.self);
     }
 

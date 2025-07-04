@@ -14,12 +14,6 @@ export default class SignUpLoginPage extends BasePage {
         return new LoginComponent(this.page);
     }
 
-    public async login(email: string, password: string) {
-        await this.loginComponent().emailInput().fill(email);
-        await this.loginComponent().passwordInput().fill(password);
-        await this.loginComponent().loginButton().click();
-    }
-
     public getURL( testinfo: TestInfo){
           const url = 'login';
           return testinfo.project.use.baseURL + url;

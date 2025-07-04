@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { mainMenuSelectors } from '../testSelectors';
+import { mainMenuSelectors } from '../support/testSelectors';
 
 export default class MainMenuComponent {
 
@@ -9,8 +9,11 @@ constructor(page: Page) {
     this.page = page;
 }
 
-self(){
-    return this.page.locator(mainMenuSelectors.self);
+self(id?: number){
+        if (id !== undefined) {
+            return this.page.locator(mainMenuSelectors.self).nth(id);
+        }
+        return this.page.locator(mainMenuSelectors.self);
 }
 
 async checkElements(selector: string, texts: string[]) {

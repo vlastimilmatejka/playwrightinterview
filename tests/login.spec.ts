@@ -1,8 +1,8 @@
 import {expect} from '@playwright/test';
-import { test } from '../fixtures';
+import { test } from '../support/fixtures';
 import { validAccount, validEmailInvalidPassword, notRegisteredAccount } from '../enums/login.enum';
 import { mainMenuItemsNotLoggedEN} from '../enums/Languages/EN/mainMenuENtranslations.enum';
-import { mainMenuSelectors } from '../testSelectors';
+import { mainMenuSelectors } from '../support/testSelectors';
 
 test.beforeEach(async ({ page, gdpr, signUpLoginPage }) => {
     await page.goto(signUpLoginPage.getURL(test.info()));

@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test';
-import BasePage from './pages/base.page';
-import SignUpLoginPage from './pages/signUpLogin.page';
+import BasePage from '../pages/base.page';
+import SignUpLoginPage from '../pages/signUpLogin.page';
 
 export const test = base.extend<{
     gdpr: ReturnType<BasePage['gdprConsent']>;

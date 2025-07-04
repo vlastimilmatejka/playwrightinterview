@@ -1,4 +1,4 @@
-import { expect, type Page, type Locator } from '@playwright/test';
+import { type Page} from '@playwright/test';
 import { loginSelectors } from '../support/testSelectors';
 
 export default class LoginComponent {

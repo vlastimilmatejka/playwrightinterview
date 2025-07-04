@@ -4,7 +4,6 @@ import { TestInfo } from '@playwright/test';
 import BasePage from "./base.page";
 
 export default class SignUpLoginPage extends BasePage {
-    URL = 'login';
 
     constructor(page: Page) {
         super(page);

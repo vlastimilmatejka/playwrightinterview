@@ -1,7 +1,7 @@
 import {expect} from '@playwright/test';
 import { test } from '../support/fixtures';
 import { validAccount, validEmailInvalidPassword, notRegisteredAccount } from '../enums/login.enum';
-import { mainMenuItemsNotLoggedEN} from '../enums/Languages/EN/mainMenuENtranslations.enum';
+import { mainMenuItemsLoggedInEN, mainMenuItemsNotLoggedEN} from '../enums/Languages/EN/mainMenuENtranslations.enum';
 import { mainMenuSelectors } from '../support/testSelectors';
 
 test.beforeEach(async ({ page, gdpr, signUpLoginPage }) => {
@@ -10,16 +10,17 @@ test.beforeEach(async ({ page, gdpr, signUpLoginPage }) => {
     await expect(gdpr.self()).toBeHidden();
 });
 
-test('Login Tests with valid credentials', async ({login}) => {
-    await login.login(validAccount.email, validAccount.password);
+test('Login Tests with valid credentials', async ({loginForm, signUpLoginPage}) => {
+    await loginForm.login(validAccount.email, validAccount.password);
+    await signUpLoginPage.mainMenu().checkElements(mainMenuSelectors.menuItem, mainMenuItemsLoggedInEN);
 });
 
-test('Login Tests with invalid credentials', async ({ login, mainMenu }) => {
-    await login.login(validEmailInvalidPassword.email, validEmailInvalidPassword.password);
+test('Login Tests with invalid credentials', async ({ loginForm, mainMenu }) => {
+    await loginForm.login(validEmailInvalidPassword.email, validEmailInvalidPassword.password);
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });
 
-test('Login Tests with not registered account', async ({signUpLoginPage}) => {
-    await signUpLoginPage.loginComponent().login(notRegisteredAccount.email, notRegisteredAccount.password);
-    await signUpLoginPage.mainMenu().checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
+test('Login Tests with not registered account', async ({signUpLoginPage, loginForm, mainMenu}) => {
+    await loginForm.login(notRegisteredAccount.email, notRegisteredAccount.password);
+    await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });

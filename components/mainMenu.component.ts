@@ -21,10 +21,10 @@ async checkElements(selector: string, texts: string[]) {
     const count = await elements.count();
 
     for (let i = 0; i < count; i++) {
-        expect(elements.nth(i)).toBeVisible();
-        expect(elements.nth(i).getAttribute('href')).not.toBeNull();
+        await expect(elements.nth(i)).toBeVisible();
+        await expect(elements.nth(i).getAttribute('href')).not.toBeNull();
         const text = await elements.nth(i).textContent();
-        expect(text).toContain(texts[i]);
+        await expect(text).toContain(texts[i]);
     }
 }
 

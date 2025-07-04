@@ -4,8 +4,8 @@ import { mainMenuItemsNotLoggedEN } from '../enums/Languages/EN/mainMenuENtransl
 import { test } from '../support/fixtures';
 import { expect } from '@playwright/test';
 
-test.beforeEach(async ({ page, gdpr }) => {
-    await page.goto(new BasePage(page).getURL(test.info()));
+test.beforeEach(async ({ page, gdpr, basePage }) => {
+    await page.goto(basePage.getURL(test.info()));
     // Check if the GDPR consent banner is visible
     expect(gdpr.self()).toBeVisible();
     gdpr.agree().click();

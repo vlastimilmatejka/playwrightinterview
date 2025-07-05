@@ -20,7 +20,7 @@ test('Login Tests with invalid credentials', async ({ loginForm, mainMenu }) => 
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });
 
-test('Login Tests with not registered account', async ({signUpLoginPage, loginForm, mainMenu}) => {
+test('Login Tests with not registered account', async ({loginForm, mainMenu}) => {
     await loginForm.login(notRegisteredAccount.email, notRegisteredAccount.password);
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });

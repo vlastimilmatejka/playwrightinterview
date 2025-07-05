@@ -29,15 +29,19 @@ export const signUpSelectors = {
 export const featureItemsSelectors = {
     self :".features_items",
     itemCard:".col-sm-4",
+    //addToCartButton:".overlay-content > a",.productinfo > h2
     addToCartButton:".productinfo > a",
     productHeadline:".productinfo > h2",
     cardDescription:".productinfo > p",
     cardImage:".productinfo > img",
-    cardDetail:".choose > ul > li> a"
+    cardDetail:".choose > ul > li> a",
+    modalSelf:".modal-content",
+    modalButton:".modal-footer > button",
 }
 
 export const cartSelectors = {
     self:"#cart_info_table",
-    cartItem:"#cart_info_table > tbody > tr",
-    cartColumnsHeader: ".cart_menu > td"
+    cartItem:"tbody > tr",
+    cartColumnsHeader: ".cart_menu > td",
+    deleteButton:".cart_quantity_delete",
 }

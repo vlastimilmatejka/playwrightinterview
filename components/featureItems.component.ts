@@ -22,8 +22,13 @@ export default class FeautreItemsComponent {
     //    }
     //}
 
-    addProductToCart(id: number) {
-        this.self().locator(featureItemsSelectors.addToCartButton).nth(id).click();
+    async addProductToCart(id: number) {
+        const targetCartButton = this.self().locator(featureItemsSelectors.addToCartButton).nth(id);
+        await targetCartButton.hover();
+        await expect(targetCartButton).toBeVisible();
+        await targetCartButton.click();
+        await expect(this.page.locator(featureItemsSelectors.modalSelf)).toBeVisible();
+        await this.page.locator(featureItemsSelectors.modalButton).click();
     }
 
     async viewProductDetail(id: number) {
@@ -32,13 +37,12 @@ export default class FeautreItemsComponent {
 
         expect(this.self().locator(featureItemsSelectors.cardDetail).nth(id)).toBeVisible();
         await this.self().locator(featureItemsSelectors.cardDetail).nth(id).click();
-        await this.page.url().includes('product_details');
     }
 
     findProductBasedHeadline(text: string) {
         return this.self().locator(featureItemsSelectors.productHeadline).filter({ hasText: text });
     }
 
-    
+
 
 }

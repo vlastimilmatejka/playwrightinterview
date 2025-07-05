@@ -9,7 +9,7 @@ export const test = base.extend<{
     loginForm: ReturnType<SignUpLoginPage['loginComponent']>;
     basePage: BasePage;
     signUpLoginPage: SignUpLoginPage;
-    feautreItems: ReturnType<BasePage['featureitems']>;
+    featureItems: ReturnType<BasePage['featureitems']>;
     cartPage: CartPage;
 
 }>({
@@ -17,7 +17,7 @@ export const test = base.extend<{
         const cartPage = new CartPage(page);
         await use(cartPage);
     },
-    feautreItems: async ({ page }, use) => {
+    featureItems: async ({ page }, use) => {
         const featureItems = new BasePage(page).featureitems();
         await use(featureItems);
     },

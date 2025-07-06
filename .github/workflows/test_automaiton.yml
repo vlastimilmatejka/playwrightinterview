@@ -8,16 +8,16 @@ on:
         default: 'dev'
         type: choice
         options:
-          - dev
-          - staging
-          - production
-
+          - qa
+          - test
+          - uat
+          - prod
       action:
         description: 'Select action to perform'
         required: true
-        default: 'deploy'
+        default: 'scope'
         type: choice
         options:
-          - deploy
-          - test
-          - rollback
+          - full
+          - regression
+          - pullrequest

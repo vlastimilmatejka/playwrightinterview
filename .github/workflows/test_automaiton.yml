@@ -35,7 +35,7 @@ on:
 jobs:
   test_automation:
     runs-on: ubuntu-latest
+    working-directory: ./Playwright
     steps:
       - name: Run Playwright tests in subfolder
-        working-directory: Playwright
         run: npx playwright test --baseURL='QA'

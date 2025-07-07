@@ -38,19 +38,19 @@ jobs:
     name: Run Playwright tests in subfolder
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v4
-
-      - working-directory: ./Playwright
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-      - uses: actions/setup-node@v4
+        uses: actions/setup-node@v4
 
       - name: Install dependencies
+        working-directory: ./Playwright
         run: yarn install
 
       - name: Install Playwright Browsers
+        working-directory: ./Playwright
         run: yarn install:playwright
 
-
       - name: Run Playwright tests
+        working-directory: ./Playwright
         run: npx playwright test --baseURL='QA'

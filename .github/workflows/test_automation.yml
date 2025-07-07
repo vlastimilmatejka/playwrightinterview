@@ -49,11 +49,11 @@ jobs:
         working-directory: ./Playwright
 
       - name: Install Playwright Browsers
-        run: yarn create playwright
+        run: yarn playwright install --with-deps
         working-directory: ./Playwright
 
       - name: Run Playwright tests
         env:
           BASE_URL: QA
-        run: npx playwright test
+        run: yarn playwright test
         working-directory: ./Playwright

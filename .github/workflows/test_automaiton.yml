@@ -1,4 +1,5 @@
 name: test automation pipeline
+
 on:
   workflow_dispatch:
     inputs:
@@ -44,13 +45,13 @@ jobs:
         uses: actions/setup-node@v4
 
       - name: Install dependencies
-        working-directory: ./Playwright
         run: yarn install
+        working-directory: ./Playwright
 
       - name: Install Playwright Browsers
-        working-directory: ./Playwright
         run: yarn install:playwright
+        working-directory: ./Playwright
 
       - name: Run Playwright tests
-        working-directory: ./Playwright
         run: npx playwright test --baseURL='QA'
+        working-directory: ./Playwright

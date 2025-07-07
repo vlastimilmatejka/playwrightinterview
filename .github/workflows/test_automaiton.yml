@@ -40,7 +40,7 @@ jobs:
       - name: Checkout repo
       - uses: actions/checkout@v4
 
-        working-directory: ./Playwright
+      - working-directory: ./Playwright
 
       - name: Set up Node.js
       - uses: actions/setup-node@v4

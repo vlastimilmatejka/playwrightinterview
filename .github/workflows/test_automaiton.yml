@@ -43,14 +43,13 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
-        working-directory: ./Playwright
 
       - name: Install dependencies
         run: yarn install
         working-directory: ./Playwright
 
       - name: Install Playwright Browsers
-        run: yarn install:playwright
+        run: yarn create playwright
         working-directory: ./Playwright
 
       - name: Run Playwright tests

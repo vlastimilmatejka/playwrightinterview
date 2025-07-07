@@ -51,4 +51,6 @@ jobs:
       - name: Install Playwright Browsers
         run: yarn install:playwright
 
+
+      - name: Run Playwright tests
         run: npx playwright test --baseURL='QA'

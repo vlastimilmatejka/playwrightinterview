@@ -35,7 +35,20 @@ on:
 jobs:
   test_automation:
     runs-on: ubuntu-latest
+    name: Run Playwright tests in subfolder
     steps:
-      - name: Run Playwright tests in subfolder
+      - name: Checkout repo
+      - uses: actions/checkout@v4
+
         working-directory: ./Playwright
+
+      - name: Set up Node.js
+      - uses: actions/setup-node@v4
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install Playwright Browsers
+        run: yarn install:playwright
+
         run: npx playwright test --baseURL='QA'

@@ -53,5 +53,7 @@ jobs:
         working-directory: ./Playwright
 
       - name: Run Playwright tests
-        run: npx playwright test --base-url=QA
+        env:
+          BASE_URL: QA
+        run: npx playwright test
         working-directory: ./Playwright

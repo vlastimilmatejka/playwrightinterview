@@ -31,8 +31,15 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
-     baseURL: process.env.BASE_URL,
+    baseURL:
+      process.env.BASE_URL === 'QA'
+        ? 'https://www.automationexercise.com/'
+        : process.env.BASE_URL === 'UAT'
+        ? 'https://practice.expandtesting.com/'
+        : process.env.BASE_URL === 'PROD'
+        ? 'https://ultimateqa.com/automation/':'',
+
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },

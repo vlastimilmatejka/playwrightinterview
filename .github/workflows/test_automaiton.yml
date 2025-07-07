@@ -2,22 +2,40 @@ name: test automation pipeline
 on:
   workflow_dispatch:
     inputs:
+      automation_type:
+        description: 'Select automation type'
+        required: true
+        default: 'App logic'
+        type: choice
+        options:
+          - App logic
+          - Integration
+
       environment:
         description: 'Select environment'
         required: true
-        default: 'dev'
+        default: 'qa'
         type: choice
         options:
           - qa
           - test
           - uat
           - prod
-      action:
-        description: 'Select action to perform'
+
+      scope:
+        description: 'Select scope of test for App logic tests'
         required: true
-        default: 'scope'
+        default: 'full'
         type: choice
         options:
           - full
           - regression
-          - pullrequest
+          - pull request
+
+jobs:
+  test_automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Playwright tests in subfolder
+        working-directory: ./Playwright
+        run: npx playwright test --baseURL='QA'

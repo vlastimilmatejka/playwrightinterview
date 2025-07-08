@@ -59,7 +59,22 @@ jobs:
         working-directory: ./Playwright
 
       - name: Install Playwright Browsers
-        run: yarn playwright install --with-deps
+        run: |
+          case "${{ github.event.inputs.browsers }}" in
+            chromium)
+              yarn playwright install --with-deps chromium
+              ;;
+            firefox)
+              yarn playwright install --with-deps firefox
+              ;;
+            webkit)
+              yarn playwright install --with-deps webkit
+              ;;
+            *)
+              echo "Invalid browser selection: ${{ github.event.inputs.browsers }}"
+              exit 1
+              ;;
+          esac
         working-directory: ./Playwright
 
       - name: Run Playwright tests

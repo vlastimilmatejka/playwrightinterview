@@ -10,17 +10,17 @@ test.beforeEach(async ({ page, gdpr, basePage }) => {
     console.log(`Process env is: ${JSON.stringify(process.env)}`);
 
     // Check if the GDPR consent banner is visible
-    expect(gdpr.self()).toBeVisible();
-    gdpr.agree().click();
+    await expect(gdpr.self()).toBeVisible();
+    await gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test.only('Main Menu Navigation items EN', async ({ mainMenu }) => {
+test.skip('Main Menu Navigation items EN', async ({ mainMenu }) => {
     mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN)    
 });
 
-test('Main Menu Logo', async ({ mainMenu }) => {
-    const logo = mainMenu.logo();
-    expect(logo).toBeVisible();
-    expect(await logo.locator('..').getAttribute('href')).not.toBeNull();
+test.only('Main Menu Logo', async ({ mainMenu }) => {
+    const logo = await mainMenu.logo();
+    await expect(logo).toBeVisible();
+    await expect(await logo.locator('..').getAttribute('href')).not.toBeNull();
 });

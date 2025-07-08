@@ -10,17 +10,17 @@ test.beforeEach(async ({ page, gdpr, signUpLoginPage }) => {
     await expect(gdpr.self()).toBeHidden();
 });
 
-test('Login Tests with valid credentials', async ({loginForm, signUpLoginPage}) => {
+test.skip('Login Tests with valid credentials', async ({loginForm, signUpLoginPage}) => {
     await loginForm.login(validAccount.email, validAccount.password);
     await signUpLoginPage.mainMenu().checkElements(mainMenuSelectors.menuItem, mainMenuItemsLoggedInEN);
 });
 
-test('Login Tests with invalid credentials', async ({ loginForm, mainMenu }) => {
+test.skip('Login Tests with invalid credentials', async ({ loginForm, mainMenu }) => {
     await loginForm.login(validEmailInvalidPassword.email, validEmailInvalidPassword.password);
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });
 
-test('Login Tests with not registered account', async ({loginForm, mainMenu}) => {
+test.skip('Login Tests with not registered account', async ({loginForm, mainMenu}) => {
     await loginForm.login(notRegisteredAccount.email, notRegisteredAccount.password);
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
 });

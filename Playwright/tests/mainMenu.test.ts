@@ -5,9 +5,7 @@ import { expect } from '@playwright/test';
 
 test.beforeEach(async ({ page, gdpr, basePage }) => {
     await page.goto(basePage.getURL(test.info()));
-    console.log(`URL is: ${basePage.getURL(test.info())}`);
-    // To access process.env in TypeScript, ensure @types/node is installed:
-    // yarn add --dev @types/node
+
     // Check if the GDPR consent banner is visible
     await expect(gdpr.self()).toBeVisible();
     await gdpr.agree().click();

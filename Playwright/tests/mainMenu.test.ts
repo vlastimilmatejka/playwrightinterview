@@ -6,13 +6,16 @@ import { expect } from '@playwright/test';
 
 test.beforeEach(async ({ page, gdpr, basePage }) => {
     await page.goto(basePage.getURL(test.info()));
+    console.log(`URL is: ${basePage.getURL(test.info())}`);
+    console.log(`Process env is: ${JSON.stringify(process.env)}`);
+
     // Check if the GDPR consent banner is visible
     expect(gdpr.self()).toBeVisible();
     gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test('Main Menu Navigation items EN', async ({ mainMenu }) => {
+test.only('Main Menu Navigation items EN', async ({ mainMenu }) => {
     mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN)    
 });
 

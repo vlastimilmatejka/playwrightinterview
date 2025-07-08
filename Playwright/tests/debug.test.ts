@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
+import {expect } from '@playwright/test';
+import { test } from '../support/fixtures';
 
-test.only('Debugging Playwright Tests', async ({ page }) => {
-    
+test.only('Debugging Playwright Tests', async ({ page, basePage }) => {
     console.log('Debugging Playwright Tests');
-    await page.goto('https://google.com'); // Example URL to navigate to
-    await expect(page).toHaveURL('https://www.google.com/');
+    await page.goto(basePage.getURL(test.info())); // Example URL to navigate to
+    await expect(page).toHaveURL('https://www.automationexercise.com/');
 });

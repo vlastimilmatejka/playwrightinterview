@@ -18,7 +18,7 @@ on:
         default: 'App logic'
         type: choice
         options:
-          - cromium
+          - chromium
           - firefox
           - webkit
 

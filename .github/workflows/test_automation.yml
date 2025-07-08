@@ -45,7 +45,9 @@ on:
 jobs:
   test_automation:
     runs-on: ubuntu-latest
-    name: Run Playwright tests in subfolder
+    name: Run Playwright tests
+    container:
+      image: mcr.microsoft.com/playwright:v1.53.0-noble
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -57,24 +59,24 @@ jobs:
         run: yarn install
         working-directory: ./Playwright
 
-      - name: Install Playwright Browsers
-        run: |
-          case "${{ github.event.inputs.browsers }}" in
-            chromium)
-              yarn playwright install --with-deps chromium
-              ;;
-            firefox)
-              yarn playwright install --with-deps firefox
-              ;;
-            webkit)
-              yarn playwright install --with-deps webkit
-              ;;
-            *)
-              echo "Invalid browser selection: ${{ github.event.inputs.browsers }}"
-              exit 1
-              ;;
-          esac
-        working-directory: ./Playwright
+      # - name: Install Playwright Browsers
+      #   run: |
+      #     case "${{ github.event.inputs.browsers }}" in
+      #       chromium)
+      #         yarn playwright install --with-deps chromium
+      #         ;;
+      #       firefox)
+      #         yarn playwright install --with-deps firefox
+      #         ;;
+      #       webkit)
+      #         yarn playwright install --with-deps webkit
+      #         ;;
+      #       *)
+      #         echo "Invalid browser selection: ${{ github.event.inputs.browsers }}"
+      #         exit 1
+      #         ;;
+      #     esac
+      #   working-directory: ./Playwright
 
       - name: Run Playwright tests
         env:

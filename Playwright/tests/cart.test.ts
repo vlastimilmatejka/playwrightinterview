@@ -17,6 +17,6 @@ test('Remove product from cart', async ({ page, featureItems, cartPage }) => {
     await expect(cartPage.self()).toBeVisible();
     await cartPage.removeItemFromCart(1);
     await page.reload();
-    cartPage = new CartPage(page); 
+    
     expect(await cartPage.numberOfItemsInCart()).toEqual(2);
 });

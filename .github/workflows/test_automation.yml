@@ -12,6 +12,16 @@ on:
           - App logic
           - Integration
 
+      browsers:
+        description: 'Select automation type'
+        required: true
+        default: 'App logic'
+        type: choice
+        options:
+          - cromium
+          - firefox
+          - webkit
+
       environment:
         description: 'Select environment'
         required: true
@@ -54,6 +64,7 @@ jobs:
 
       - name: Run Playwright tests
         env:
-          BASE_URL: QA
+          BASE_URL: ${{ github.event.inputs.environment}}
+          projects: ${{ github.event.inputs.browsers }}
         run: yarn playwright test
         working-directory: ./Playwright

@@ -52,13 +52,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-
-      - name: Install dependencies
-        run: yarn install
-        working-directory: ./Playwright
-
       # - name: Install Playwright Browsers
       #   run: |
       #     case "${{ github.event.inputs.browsers }}" in

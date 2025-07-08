@@ -18,8 +18,6 @@ if (!process.env.CI) {
   dotenv.config();
 }
 
-dotenv.config();
-
 export default defineConfig({
   testDir: './tests',
   

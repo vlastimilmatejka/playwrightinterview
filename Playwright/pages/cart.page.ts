@@ -3,11 +3,10 @@ import BasePage from './base.page';
 import { cartSelectors } from '../support/testSelectors';
 
 export default class CartPage extends BasePage {
-    readonly page: Page;
+
 
     constructor(page: Page) {
         super(page);
-        this.page = page;
     }
 
     self() {

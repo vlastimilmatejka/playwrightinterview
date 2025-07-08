@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test';
 import { test } from '../support/fixtures';
-import CartPage from '../pages/cart.page';
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});

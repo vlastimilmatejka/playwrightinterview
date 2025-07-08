@@ -1,5 +1,4 @@
 import { mainMenuSelectors } from "../support/testSelectors";
-import BasePage from "../pages/base.page";
 import { mainMenuItemsNotLoggedEN } from '../enums/Languages/EN/mainMenuENtranslations.enum';
 import { test } from '../support/fixtures';
 import { expect } from '@playwright/test';
@@ -7,6 +6,8 @@ import { expect } from '@playwright/test';
 test.beforeEach(async ({ page, gdpr, basePage }) => {
     await page.goto(basePage.getURL(test.info()));
     console.log(`URL is: ${basePage.getURL(test.info())}`);
+    // To access process.env in TypeScript, ensure @types/node is installed:
+    // yarn add --dev @types/node
     console.log(`Process env is: ${JSON.stringify(process.env)}`);
 
     // Check if the GDPR consent banner is visible

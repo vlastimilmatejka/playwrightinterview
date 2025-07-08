@@ -25,13 +25,12 @@ on:
       environment:
         description: 'Select environment'
         required: true
-        default: 'qa'
+        default: 'QA'
         type: choice
         options:
-          - qa
-          - test
-          - uat
-          - prod
+          - QA
+          - UAT
+          - PROD
 
       scope:
         description: 'Select scope of test for App logic tests'

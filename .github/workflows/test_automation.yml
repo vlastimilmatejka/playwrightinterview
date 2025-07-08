@@ -71,6 +71,10 @@ jobs:
       #     esac
       #   working-directory: ./Playwright
 
+      - name: Install dependencies with Yarn (skip Playwright postinstall)
+        run: yarn install --ignore-scripts
+        working-directory: ./Playwright
+
       - name: Run Playwright tests
         env:
           CI: true

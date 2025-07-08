@@ -57,10 +57,6 @@ jobs:
         run: yarn install
         working-directory: ./Playwright
 
-      - name: Set up Playwright
-        run: yarn playwright install 
-        working-directory: ./Playwright
-
       - name: Install Playwright Browsers
         run: |
           case "${{ github.event.inputs.browsers }}" in

@@ -13,6 +13,11 @@ import dotenv from 'dotenv';
  * See https://playwright.dev/docs/test-configuration.
  */
 
+// Only load .env if not running in CI
+if (!process.env.CI) {
+  dotenv.config();
+}
+
 dotenv.config();
 
 export default defineConfig({

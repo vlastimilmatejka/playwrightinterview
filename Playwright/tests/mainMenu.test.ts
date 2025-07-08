@@ -8,8 +8,6 @@ test.beforeEach(async ({ page, gdpr, basePage }) => {
     console.log(`URL is: ${basePage.getURL(test.info())}`);
     // To access process.env in TypeScript, ensure @types/node is installed:
     // yarn add --dev @types/node
-    console.log(`Process env is: ${JSON.stringify(process.env)}`);
-
     // Check if the GDPR consent banner is visible
     await expect(gdpr.self()).toBeVisible();
     await gdpr.agree().click();

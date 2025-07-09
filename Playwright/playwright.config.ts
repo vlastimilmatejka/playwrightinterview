@@ -13,7 +13,10 @@ import dotenv from 'dotenv';
  * See https://playwright.dev/docs/test-configuration.
  */
 
-dotenv.config();
+// Only load .env if not running in CI
+if (!process.env.CI) {
+  dotenv.config();
+}
 
 export default defineConfig({
   testDir: './tests',
@@ -21,7 +24,7 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  //forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */

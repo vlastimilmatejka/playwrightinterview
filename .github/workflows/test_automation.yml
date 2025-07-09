@@ -12,16 +12,25 @@ on:
           - App logic
           - Integration
 
+      browsers:
+        description: 'Select browser'
+        required: true
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+
       environment:
         description: 'Select environment'
         required: true
-        default: 'qa'
+        default: 'QA'
         type: choice
         options:
-          - qa
-          - test
-          - uat
-          - prod
+          - QA
+          - UAT
+          - PROD
 
       scope:
         description: 'Select scope of test for App logic tests'
@@ -36,24 +45,40 @@ on:
 jobs:
   test_automation:
     runs-on: ubuntu-latest
-    name: Run Playwright tests in subfolder
+    name: Run Playwright tests
+    container:
+      image: mcr.microsoft.com/playwright:v1.53.0-noble
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # - name: Install Playwright Browsers
+      #   run: |
+      #     case "${{ github.event.inputs.browsers }}" in
+      #       chromium)
+      #         yarn playwright install --with-deps chromium
+      #         ;;
+      #       firefox)
+      #         yarn playwright install --with-deps firefox
+      #         ;;
+      #       webkit)
+      #         yarn playwright install --with-deps webkit
+      #         ;;
+      #       *)
+      #         echo "Invalid browser selection: ${{ github.event.inputs.browsers }}"
+      #         exit 1
+      #         ;;
+      #     esac
+      #   working-directory: ./Playwright
 
-      - name: Install dependencies
-        run: yarn install
-        working-directory: ./Playwright
-
-      - name: Install Playwright Browsers
-        run: yarn create playwright
+      - name: Install dependencies with Yarn (skip Playwright postinstall)
+        run: yarn install --ignore-scripts
         working-directory: ./Playwright
 
       - name: Run Playwright tests
         env:
-          BASE_URL: QA
-        run: npx playwright test
+          CI: true
+          BASE_URL: ${{ github.event.inputs.environment }}
+          PLAYWRIGHT_BROWSERS_PATH: '0'    # <-- Use browsers from the Docker image
+        run: npx playwright test --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright

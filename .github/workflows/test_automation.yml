@@ -71,14 +71,10 @@ jobs:
       #     esac
       #   working-directory: ./Playwright
 
-      - name: Install dependencies with Yarn
-        run: yarn install --ignore-scripts
-        working-directory: ./Playwright
-
       - name: Run Playwright tests
         env:
           CI: true
           BASE_URL: ${{ github.event.inputs.environment }}
           PLAYWRIGHT_BROWSERS_PATH: '0'    # <-- Use browsers from the Docker image
-        run: yarn playwright test --project=${{ github.event.inputs.browsers }}
+        run: npx playwright test --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright

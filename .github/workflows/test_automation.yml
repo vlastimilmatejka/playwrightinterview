@@ -65,6 +65,13 @@ jobs:
           ls -la node_modules/playwright-core/.local-browsers || true
         working-directory: ./Playwright
 
+      - name: Check browsers inside container
+        run: |
+          echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
+          ls /ms-playwright || echo "No browsers found in /ms-playwright"
+          ls node_modules/playwright-core/.local-browsers || echo "No local browsers found"
+        working-directory: ./Playwright
+
       - name: Run Playwright tests
         env:
           CI: true

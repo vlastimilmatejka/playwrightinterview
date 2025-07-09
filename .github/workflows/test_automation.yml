@@ -48,7 +48,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.53.2
       env:
-        PLAYWRIGHT_BROWSERS_PATH: '0'  # ✅ this is critical
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

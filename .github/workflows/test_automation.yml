@@ -81,6 +81,7 @@ jobs:
           yarn playwright --version
           echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
           ls -la node_modules/playwright-core/.local-browsers || true
+        working-directory: ./Playwright
 
       - name: Run Playwright tests
         env:

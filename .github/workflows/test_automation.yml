@@ -47,7 +47,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Run Playwright tests
     container:
-      image: mcr.microsoft.com/playwright:v1.53.2
+      image: mcr.microsoft.com/playwright:v1.53.2,
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: '0'  
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -76,7 +78,7 @@ jobs:
         working-directory: ./Playwright
       
       - name: environment info
-        run: |
+        run:
           echo "Checking Playwright info..."
           yarn playwright --version
           echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
@@ -87,6 +89,5 @@ jobs:
         env:
           CI: true
           BASE_URL: ${{ github.event.inputs.environment }}
-          PLAYWRIGHT_BROWSERS_PATH: '0'    # <-- Use browsers from the Docker image
         run: yarn playwright test --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright

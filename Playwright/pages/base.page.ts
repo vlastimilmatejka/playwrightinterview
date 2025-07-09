@@ -1,7 +1,7 @@
 import GdprComponent from "../components/gdpr.component";
 import MainMenuComponent from "../components/mainMenu.component";
 import FeautreItemsComponent from "../components/featureItems.component";
-import { Page } from 'playwright';
+import { Page } from '@playwright/test';
 import { TestInfo } from '@playwright/test';
 
 export default class BasePage {

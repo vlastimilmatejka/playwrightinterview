@@ -1,5 +1,5 @@
 import LoginComponent from "../components/login.component";
-import { Page } from 'playwright';
+import { Page } from '@playwright/test';
 import { TestInfo } from '@playwright/test';
 import BasePage from "./base.page";
 

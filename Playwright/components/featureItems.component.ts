@@ -1,4 +1,4 @@
-import { Page, expect, ElementHandle } from '@playwright/test';
+import { Page, expect} from '@playwright/test';
 import { featureItemsSelectors } from '../support/testSelectors';
 
 export default class FeautreItemsComponent {

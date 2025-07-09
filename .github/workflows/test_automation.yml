@@ -56,6 +56,11 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --ignore-scripts
         working-directory: ./Playwright
+      
+      - name: Clear Playwright local browsers cache
+        run: rm -rf node_modules/playwright-core/.local-browsers
+        working-directory: ./Playwright
+        
 
       - name: Debug Playwright env
         run: |

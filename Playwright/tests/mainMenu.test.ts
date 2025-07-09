@@ -1,5 +1,5 @@
 import { mainMenuSelectors } from "../support/testSelectors";
-import { mainMenuItemsNotLoggedEN } from '../enums/Languages/EN/mainMenuENtranslations.enum';
+import { mainMenuItemsNotLoggedEN } from "../constants/Languages/EN/mainMenuENtranslations.const";
 import { test } from '../support/fixtures';
 import { expect } from '@playwright/test';
 

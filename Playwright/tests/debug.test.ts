@@ -1,11 +1,13 @@
 import { expect } from '@playwright/test';
 import { test } from '../support/fixtures';
 import { chromium, BrowserContext  } from '@playwright/test';
+import { gdprSelectors } from '../support/testSelectors';
 
 let context: BrowserContext;
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});
+    await page.waitForSelector(gdprSelectors.self, { timeout: 15000 });
     await expect(gdpr.self()).toBeVisible();
     await gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 

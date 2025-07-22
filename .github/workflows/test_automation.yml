@@ -47,7 +47,7 @@ jobs:
     if: (github.event.inputs.automation_type == 'App logic')
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.53.2
+      image: mcr.microsoft.com/playwright:v1.54.1
       env:
         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:

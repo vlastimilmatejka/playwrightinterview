@@ -45,6 +45,7 @@ export default defineConfig({
         ? 'https://ultimateqa.com/automation/':'',
 
         viewport: { width: 1920, height: 1080 },
+        headless: true,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

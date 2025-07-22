@@ -8,7 +8,7 @@ test.beforeEach(async ({ page, basePage, gdpr }) => {
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test.only('Debugging Playwright Tests', async ({ page, basePage, gdpr }) => {
+test('Debugging Playwright Tests', async ({ page, basePage, gdpr }) => {
     console.log('Debugging Playwright Tests');
     await expect(page).toHaveURL(basePage.getURL(test.info()));
 });

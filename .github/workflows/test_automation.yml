@@ -65,11 +65,6 @@ jobs:
         run: yarn playwright test --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright
 
-      - name: Generate HTML report
-        if: always()
-        run: yarn playwright show-report
-        working-directory: ./Playwright
-
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4

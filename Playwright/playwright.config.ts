@@ -34,26 +34,28 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 3 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter:[  
-    ['html', { open: 'always' }],
-],
+  reporter: [
+    ['html', { open: 'never' }],
+  ],
+
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
+    screenshot: 'only-on-failure',
     baseURL:
       process.env.BASE_URL === 'QA'
         ? 'https://www.automationexercise.com/'
         : process.env.BASE_URL === 'UAT'
-        ? 'https://practice.expandtesting.com/'
-        : process.env.BASE_URL === 'PROD'
-        ? 'https://ultimateqa.com/automation/':'',
+          ? 'https://practice.expandtesting.com/'
+          : process.env.BASE_URL === 'PROD'
+            ? 'https://ultimateqa.com/automation/' : '',
 
-        viewport: { width: 1920, height: 1080 },
-        headless: true,
-        locale: 'cs-CZ',               // Czech locale
-        timezoneId: 'Europe/Prague',   // Timezone for Prague
-        geolocation: { longitude: 14.418540, latitude: 	50.073658 },
-        permissions: ['geolocation'],
+    viewport: { width: 1920, height: 1080 },
+    headless: true,
+    locale: 'cs-CZ',               // Czech locale
+    timezoneId: 'Europe/Prague',   // Timezone for Prague
+    geolocation: { longitude: 14.418540, latitude: 50.073658 },
+    permissions: ['geolocation'],
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

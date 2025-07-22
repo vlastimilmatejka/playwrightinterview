@@ -21,7 +21,9 @@ if (!process.env.CI) {
 export default defineConfig({
   testDir: './tests',
 
-  timeout: 15000,
+  expect: {
+    timeout: 15000, // 15 seconds for expect()
+  },
   
   /* Run tests in files in parallel */
   fullyParallel: true,

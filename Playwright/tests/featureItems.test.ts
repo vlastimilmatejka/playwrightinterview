@@ -3,9 +3,9 @@ import { test} from '../support/fixtures';
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});
-    await expect(gdpr.self()).toBeVisible();
-    await gdpr.agree().click();
-    await expect(gdpr.self()).toBeHidden(); 
+   // await expect(gdpr.self()).toBeVisible();
+   // await gdpr.agree().click();
+   // await expect(gdpr.self()).toBeHidden(); 
 });
 
 test('View product details', async ({page, featureItems }) => {

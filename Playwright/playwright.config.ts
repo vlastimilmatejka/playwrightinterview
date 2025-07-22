@@ -54,7 +54,7 @@ export default defineConfig({
     headless: true,
     locale: 'cs-CZ',               // Czech locale
     timezoneId: 'Europe/Prague',   // Timezone for Prague
-    geolocation: { longitude: 14.418540, latitude: 50.073658 },
+    geolocation: { longitude: 14.418540, latitude: 50.073658 }, // geolocation for Prague
     permissions: ['geolocation'],
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */

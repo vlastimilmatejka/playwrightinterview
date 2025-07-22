@@ -43,7 +43,8 @@ on:
           - pull request
 
 jobs:
-  test_automation:
+  App_logic_tests:
+    if: (github.event.inputs.automation_type == 'App logic')
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.53.2
@@ -56,26 +57,6 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --ignore-scripts
         working-directory: ./Playwright
-      
-      - name: Clear Playwright local browsers cache
-        run: rm -rf node_modules/playwright-core/.local-browsers
-        working-directory: ./Playwright
-        
-
-      - name: Debug Playwright env
-        run: |
-          echo "Checking Playwright info..."
-          yarn playwright --version
-          echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
-          ls -la node_modules/playwright-core/.local-browsers || true
-        working-directory: ./Playwright
-
-      - name: Check browsers inside container
-        run: |
-          echo "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
-          ls /ms-playwright || echo "No browsers found in /ms-playwright"
-          ls node_modules/playwright-core/.local-browsers || echo "No local browsers found"
-        working-directory: ./Playwright
 
       - name: Run Playwright tests
         env:
@@ -83,3 +64,22 @@ jobs:
           BASE_URL: ${{ github.event.inputs.environment }}
         run: yarn playwright test --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright
+
+  Integration_tests:
+    if: (github.event.inputs.automation_type == 'Integration')
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.53.2
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies with Yarn
+        run: yarn install --ignore-scripts
+        working-directory: ./Integration
+      
+      - name: Run Playwright tests
+        run: yarn playwright test
+        working-directory: ./Integration

@@ -1,6 +1,6 @@
 import { test, expect, request, APIRequestContext } from '@playwright/test';
 import { loginNoParametersSchema } from '../response.schema.ts';
-import Ajv from 'ajv'
+import Ajv from 'ajv';
 
 const endpointURL = 'https://automationexercise.com';
 let apiRequestContext;

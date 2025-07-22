@@ -1,5 +1,8 @@
 import { expect } from '@playwright/test';
 import { test } from '../support/fixtures';
+import { chromium, BrowserContext  } from '@playwright/test';
+
+let context: BrowserContext;
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});
@@ -8,7 +11,7 @@ test.beforeEach(async ({ page, basePage, gdpr }) => {
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test('Debugging Playwright Tests', async ({ page, basePage, gdpr }) => {
+test.only('Debugging Playwright Tests', async ({ page, basePage, gdpr }) => {
     console.log('Debugging Playwright Tests');
     await expect(page).toHaveURL(basePage.getURL(test.info()));
 });

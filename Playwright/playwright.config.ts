@@ -24,7 +24,7 @@ export default defineConfig({
   expect: {
     timeout: 15000, // 15 seconds for expect()
   },
-  
+
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -50,6 +50,10 @@ export default defineConfig({
 
         viewport: { width: 1920, height: 1080 },
         headless: true,
+        locale: 'cs-CZ',               // Czech locale
+        timezoneId: 'Europe/Prague',   // Timezone for Prague
+        geolocation: { longitude: 14.418540, latitude: 	50.073658 },
+        permissions: ['geolocation'],
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

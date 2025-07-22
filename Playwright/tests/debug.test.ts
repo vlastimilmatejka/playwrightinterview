@@ -7,7 +7,8 @@ let context: BrowserContext;
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});
-    await page.waitForSelector(gdprSelectors.self, { timeout: 15000 });
+    const html = await page.content();
+    await console.log(html);
     await expect(gdpr.self()).toBeVisible();
     await gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 

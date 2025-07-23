@@ -8,13 +8,13 @@ test.beforeEach(async ({ page, basePage, gdpr }) => {
    // await expect(gdpr.self()).toBeHidden(); 
 });
 
-test('View product details', async ({page, featureItems }) => {
+test('View product details', {tag:'@full'}, async ({page, featureItems }) => {
     const productId = 1;
     await featureItems.viewProductDetail(productId);
     await page.url().includes('product_details');
 });
 
-test('Add products to cart', async ({ featureItems, cartPage, page }) => {
+test('Add products to cart', {tag:'@full'}, async ({ featureItems, cartPage, page }) => {
     await featureItems.addProductToCart(1);
     await featureItems.addProductToCart(2)
     

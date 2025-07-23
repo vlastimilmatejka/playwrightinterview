@@ -15,11 +15,11 @@ test.beforeEach(async ({ page, gdpr, basePage }) => {
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test.skip('Main Menu Navigation items EN', async ({ mainMenu }) => {
+test('Main Menu Navigation items EN',{tag:'@pullrequest'}, async ({ mainMenu }) => {
     await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN)    
 });
 
-test.skip('Main Menu Logo', async ({ mainMenu }) => {
+test('Main Menu Logo',{tag:'@pullrequest'}, async ({ mainMenu }) => {
     const logo = await mainMenu.logo();
     await expect(logo).toBeVisible();
     await expect(await logo.locator('..').getAttribute('href')).not.toBeNull();

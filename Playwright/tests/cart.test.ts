@@ -8,7 +8,7 @@ test.beforeEach(async ({ page, basePage, gdpr }) => {
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test.skip('Remove product from cart', async ({ page, featureItems, cartPage }) => {
+test.skip('Remove product from cart', {tag:'@full'}, async ({ page, featureItems, cartPage }) => {
     await featureItems.addProductToCart(1);
     await featureItems.addProductToCart(2);
     await featureItems.addProductToCart(3);

@@ -35,7 +35,7 @@ on:
       scope:
         description: 'Select scope of test for App logic tests'
         required: true
-        default: 'full'
+        default: 'all'
         type: choice
         options:
           - full
@@ -62,7 +62,12 @@ jobs:
         env:
           CI: true
           BASE_URL: ${{ github.event.inputs.environment }}
-        run: yarn playwright test --project=${{ github.event.inputs.browsers }}
+        run: |
+          if [[ "${{ github.event.inputs.scope }}" == "all" ]]; then
+            yarn playwright test --project=${{ github.event.inputs.browsers }}
+          else
+            yarn playwright test --project=${{ github.event.inputs.browsers }} --grep=@${{ github.event.inputs.scope }}
+          fi
         working-directory: ./Playwright
 
       - name: Upload Playwright HTML report

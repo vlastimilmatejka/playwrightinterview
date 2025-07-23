@@ -97,7 +97,14 @@ jobs:
       - name: Run Playwright tests
         run: yarn playwright test
         working-directory: ./Integration
-  
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-integration-report
+          path: ./Integration/playwright-report
+
   Accessibility_tests:
     if: (github.event.inputs.automation_type == 'Accessibility')
     runs-on: ubuntu-latest

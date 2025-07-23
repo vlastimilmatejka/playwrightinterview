@@ -38,9 +38,10 @@ on:
         default: 'all'
         type: choice
         options:
+          - all
           - full
           - regression
-          - pull request
+          - pullrequest
 
 jobs:
   App_logic_tests:

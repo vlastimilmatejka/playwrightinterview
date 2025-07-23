@@ -113,11 +113,14 @@ jobs:
         run: yarn install --ignore-scripts
         working-directory: ./Playwright
       
-      - name: Run Playwright tests
+      - name: Run Playwright accessibility tests
+        env:
+          CI: true
+          BASE_URL: ${{ github.event.inputs.environment }}
         run: yarn playwright test tests/accessibility --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright
       
-      - name: Upload Playwright HTML report
+      - name: Upload Playwright accessibility HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:

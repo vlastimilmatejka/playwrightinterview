@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { test } from '../support/fixtures';
+import { test } from '../../support/fixtures';
 
 test.beforeEach(async ({ page, basePage, gdpr }) => {
     await page.goto(basePage.getURL(test.info()),{waitUntil: 'load'});
@@ -8,7 +8,7 @@ test.beforeEach(async ({ page, basePage, gdpr }) => {
     await expect(gdpr.self()).toBeHidden(); 
 });
 
-test.skip('Remove product from cart', {tag:'@full'}, async ({ page, featureItems, cartPage }) => {
+test('Remove product from cart', {tag:'@full'}, async ({ page, featureItems, cartPage }) => {
     await featureItems.addProductToCart(1);
     await featureItems.addProductToCart(2);
     await featureItems.addProductToCart(3);

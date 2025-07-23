@@ -19,7 +19,9 @@ if (!process.env.CI) {
 }
 
 export default defineConfig({
-  testDir: './tests',
+  //testDir: './tests',
+
+  testMatch: '**/*.{spec,accessibility,test}.ts',
 
   expect: {
     timeout: 5000, // 5 seconds for expect()
@@ -35,7 +37,7 @@ export default defineConfig({
   workers: process.env.CI ? 3 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ['html', { open: 'never' }],
+    ['html', { open: 'always' }],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

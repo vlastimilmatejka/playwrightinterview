@@ -1,15 +1,10 @@
-import { mainMenuSelectors } from "../support/testSelectors";
-import { mainMenuItemsNotLoggedEN } from "../constants/Languages/EN/mainMenuENtranslations.const";
-import { test } from '../support/fixtures';
+import { mainMenuSelectors } from "../../support/testSelectors";
+import { mainMenuItemsNotLoggedEN } from "../../constants/Languages/EN/mainMenuENtranslations.const";
+import { test } from '../../support/fixtures';
 import { expect } from '@playwright/test';
 
 test.beforeEach(async ({ page, gdpr, basePage }) => {
     await page.goto(basePage.getURL(test.info()));
-
-
-    // Check if the GDPR consent banner is visible
-    await expect(gdpr.self()).toBeVisible();
-    await gdpr.agree().click();
     await expect(gdpr.self()).toBeVisible();
     await gdpr.agree().click();
     await expect(gdpr.self()).toBeHidden(); 

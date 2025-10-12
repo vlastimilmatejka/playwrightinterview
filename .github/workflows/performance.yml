@@ -1,2 +1,51 @@
-name: performance tests
+name: perfromance_test
 
+on:
+  workflow_dispatch:
+    inputs:
+      jmx_file:
+        description: 'Path to the JMeter .jmx test file (inside performance folder)'
+        required: true
+        default: 'sample_test.jmx'
+
+jobs:
+  jmeter-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: performance  # All steps execute from /performance
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          working-directory: ./Performance
+
+      - name: Install JMeter
+        working-directory: ./Performance
+        run: |
+          JMETER_VERSION=5.6.3
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
+          tar -xzf apache-jmeter-${JMETER_VERSION}.tgz
+          echo "JMETER_HOME=$(pwd)/apache-jmeter-${JMETER_VERSION}" >> $GITHUB_ENV
+          echo "$(pwd)/apache-jmeter-${JMETER_VERSION}/bin" >> $GITHUB_PATH
+
+      - name: Run JMeter Test
+        working-directory: ./Performance
+        run: |
+          echo "Running JMeter test: ${{ github.event.inputs.jmx_file }}"
+          mkdir -p results
+          jmeter -n -t "../${{ github.event.inputs.jmx_file }}" -l "results/results.jtl" -e -o "results/html-report"
+
+      - name: Upload JMeter Results (.jtl and HTML report)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-results
+          path: |
+            ./Performance/results/results.jtl
+            ./Performance/results/html-report

@@ -24,6 +24,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
+          distribution: 'temurin'
           working-directory: ./Performance
 
       - name: Install JMeter
@@ -40,7 +41,7 @@ jobs:
         run: |
           echo "Running JMeter test: ${{ github.event.inputs.jmx_file }}"
           mkdir -p results
-          jmeter -n -t "../${{ github.event.inputs.jmx_file }}" -l "results/results.jtl" -e -o "results/html-report"
+          jmeter -n -t "${{ github.event.inputs.jmx_file }}" -l "results/results.jtl" -e -o "results/html-report"
 
       - name: Upload JMeter Results (.jtl and HTML report)
         uses: actions/upload-artifact@v4

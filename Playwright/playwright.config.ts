@@ -1,22 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
+import path from 'path';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Determine which environment to load
+const envName = process.env.BASE_URL_ENV || 'QA'; // default to QA
+const envPath = path.resolve(__dirname, 'configuration', `.env.${envName.toLowerCase()}`);
+dotenv.config({ path: envPath });
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
-
-// Only load .env if not running in CI
-if (!process.env.CI) {
-  dotenv.config();
-}
 
 export default defineConfig({
   //testDir: './tests',
@@ -44,14 +34,7 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     screenshot: 'only-on-failure',
-    baseURL:
-      process.env.BASE_URL === 'QA'
-        ? 'https://www.automationexercise.com/'
-        : process.env.BASE_URL === 'UAT'
-          ? 'https://practice.expandtesting.com/'
-          : process.env.BASE_URL === 'PROD'
-            ? 'https://ultimateqa.com/automation/' : '',
-
+    baseURL:process.env.BASE_URL,
     viewport: { width: 1920, height: 1080 },
     headless: true,
     locale: 'cs-CZ',               // Czech locale

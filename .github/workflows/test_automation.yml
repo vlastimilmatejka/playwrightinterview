@@ -63,7 +63,7 @@ jobs:
       - name: Run Playwright tests
         env:
           CI: true
-          BASE_URL: ${{ github.event.inputs.environment }}
+          BASE_URL_ENV: ${{ github.event.inputs.environment }}
         run: |
           if [[ "${{ github.event.inputs.scope }}" == "all" ]]; then
             yarn playwright test tests/e2e --project=${{ github.event.inputs.browsers }}
@@ -123,7 +123,7 @@ jobs:
       - name: Run Playwright accessibility tests
         env:
           CI: true
-          BASE_URL: ${{ github.event.inputs.environment }}
+          BASE_URL_ENV: ${{ github.event.inputs.environment }}
         run: yarn playwright test tests/accessibility --project=${{ github.event.inputs.browsers }}
         working-directory: ./Playwright
       

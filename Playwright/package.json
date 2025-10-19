@@ -9,15 +9,20 @@
     "@types/node": "^24.0.10",
     "axe-core": "^4.10.3",
     "axe-playwright": "^2.1.0",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
-  "scripts": {},
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "dependencies": {
     "@playwright/test": "^1.54.1",
     "add": "^2.0.6",
     "process-env": "^2.0.2"
+  },
+  "scripts": {
+    "test:qa": "cross-env BASE_URL_ENV=QA playwright test --project=chromium",
+    "test:uat": "cross-env BASE_URL_ENV=UAT playwright test --project=chromium",
+    "test:prod": "cross-env BASE_URL_ENV=PROD playwright test --project=chromium"
   }
 }

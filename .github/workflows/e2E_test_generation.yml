@@ -1,0 +1,52 @@
+name: Generate E2E Test from Xray
+
+on:
+  workflow_dispatch:
+    inputs:
+      xray_id:
+        description: 'Jira/Xray Test Case ID (e.g., QA-123)'
+        required: true
+        type: string
+
+jobs:
+  generate-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: yarn install
+        
+      - name: Run AI Generation Script
+        env:
+          XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+          XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npx ts-node scripts/generateFromXray.ts ${{ inputs.xray_id }}
+        
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "test: generate e2e test for ${{ inputs.xray_id }}"
+          branch: "automation/${{ inputs.xray_id }}"
+          title: "🤖 Auto-Generated E2E Test: ${{ inputs.xray_id }}"
+          body: |
+            ### Automated Test Generation
+            This PR contains a Playwright test automatically generated from the manual steps in Xray ticket **${{ inputs.xray_id }}**.
+            
+            **Reviewer Checklist:**
+            - [ ] Verify locators match the UI
+            - [ ] Ensure assertions cover all Xray "Expected Results"
+            - [ ] Run the test to ensure stability
+          labels: automated-test, playwright

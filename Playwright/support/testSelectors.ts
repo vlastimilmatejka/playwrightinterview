@@ -36,12 +36,12 @@ export const featureItemsSelectors = {
     cardImage:".productinfo > img",
     cardDetail:".choose > ul > li> a",
     modalSelf:".modal-content",
-    modalButton:".modal-footer > button",
+    modalButton:".modal-footer > button"
 }
 
 export const cartSelectors = {
     self:"#cart_info_table",
     cartItem:"tbody > tr",
     cartColumnsHeader: ".cart_menu > td",
-    deleteButton:".cart_quantity_delete",
+    deleteButton:".cart_quantity_delete"
 }

@@ -27,7 +27,7 @@ async function getXrayToken(): Promise<string> {
     return await response.json() as string;
 }
 
-async function getTestSteps(token: string, issueKey: string) {
+async function getTestSteps(token: string, issueKey: string): Promise<any> {
     console.log(`Fetching steps for Xray Test Case: ${issueKey}...`);
     const query = `
     {
@@ -69,37 +69,91 @@ async function getTestSteps(token: string, issueKey: string) {
     return results[0];
 }
 
-async function generatePlaywrightTest(issueKey: string) {
+// --- NEW HELPER: Recursively read existing TS files to provide context ---
+function getExistingTypeScriptFiles(dirPath: string): string {
+    if (!fs.existsSync(dirPath)) return "Directory does not exist.";
+    
+    let output = "";
+    const readDir = (currentPath: string) => {
+        const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.join(currentPath, entry.name);
+            if (entry.isDirectory()) {
+                readDir(fullPath);
+            } else if (entry.isFile() && fullPath.endsWith('.ts')) {
+                const content = fs.readFileSync(fullPath, 'utf-8');
+                const relPath = path.relative(process.cwd(), fullPath);
+                output += `\n### File: ${relPath} ###\n${content}\n`;
+            }
+        }
+    };
+    
+    readDir(dirPath);
+    return output || "No existing files found in this directory.";
+}
+
+async function generatePlaywrightTest(issueKey: string): Promise<void> {
     try {
-        const token = await getXrayToken();
+        const token: string = await getXrayToken();
         const testCase = await getTestSteps(token, issueKey);
 
-        const title = testCase.jira.summary;
-        const steps = testCase.steps || [];
+        const title: string = testCase.jira.summary;
+        const steps: any[] = testCase.steps || [];
 
-        const formattedSteps = steps.map((step: any, index: number) => {
+        const formattedSteps: string = steps.map((step: any, index: number) => {
             return `Step ${index + 1}:
             Action: ${step.action}
             Data: ${step.data || 'None'}
             Expected Result: ${step.result || 'None'}`;
         }).join('\n\n');
 
-        const agentFilePath = path.join(process.cwd(), '../.github/agents/copilot-instructions.agent.md');
+        const agentFilePath: string = path.join(process.cwd(), '../.github/agents/copilot-instructions.agent.md');
         if (!fs.existsSync(agentFilePath)) {
             throw new Error("agents.md file not found in root directory.");
         }
-        const systemPrompt = fs.readFileSync(agentFilePath, 'utf-8');
+        const systemPrompt: string = fs.readFileSync(agentFilePath, 'utf-8');
 
-        // Instruct Gemini to return a multi-file JSON structure
-        const userPrompt = `
+        // Fetch Selectors Context
+        const selectorFilePath: string = path.join(process.cwd(), 'support/testSelectors.ts');
+        let existingSelectors: string = "No existing selectors found.";
+        if (fs.existsSync(selectorFilePath)) {
+            existingSelectors = fs.readFileSync(selectorFilePath, 'utf-8');
+        }
+
+        // --- NEW: Fetch Page Objects and Components Context ---
+        const pagesPath = path.join(process.cwd(), 'pages');
+        const componentsPath = path.join(process.cwd(), 'components');
+        const existingPages = getExistingTypeScriptFiles(pagesPath);
+        const existingComponents = getExistingTypeScriptFiles(componentsPath);
+
+        const userPrompt: string = `
         You are an expert QA Automation Engineer.
         Please write a Playwright E2E test for the following Jira Test Case: ${issueKey} - ${title}.
         
         Here are the manual steps from Xray:
         ${formattedSteps}
 
-        Analyze the architecture rules. If the test requires new Page Objects or Components to remain compliant with the POM structure, generate them. If new selectors are needed, provide them.
+        Here is the CURRENT state of the selectors file (support/testSelectors.ts):
+        ---
+        ${existingSelectors}
+        ---
+        CRITICAL RULE FOR SELECTORS: If a new selector belongs to an existing category, you MUST merge the new key-value pair into the existing object. Output the ENTIRE updated content of the file.
+
+        Here is the CURRENT state of existing Page Objects:
+        ---
+        ${existingPages}
+        ---
+
+        Here is the CURRENT state of existing Components:
+        ---
+        ${existingComponents}
+        ---
         
+        CRITICAL RULE FOR PAGE OBJECTS & COMPONENTS: 
+        1. If you need to interact with the UI, check the existing Page Objects and Components first and USE existing methods.
+        2. If you MUST add a new method to an existing Page Object or Component, you MUST output the ENTIRE file content in your JSON response, preserving ALL existing methods, properties, and imports exactly as they are. DO NOT delete existing methods.
+        3. Only generate entirely new files if the domain/page does not conceptually fit into the existing files.
+
         You MUST output ONLY a valid JSON object matching this exact schema:
         {
           "testFile": {
@@ -107,22 +161,22 @@ async function generatePlaywrightTest(issueKey: string) {
             "content": "// Playwright test code..."
           },
           "pageObjects": [
-            { "path": "pages/example.page.ts", "content": "// Page object code..." }
+            { "path": "pages/example.page.ts", "content": "// The FULL content of the file, preserving old methods..." }
           ],
           "components": [
-            { "path": "components/example.component.ts", "content": "// Component code..." }
+            { "path": "components/example.component.ts", "content": "// The FULL content of the file, preserving old methods..." }
           ],
           "selectors": {
-            "appendContent": "export const exampleSelectors = { \\n  self: '.example' \\n};"
+            "path": "support/testSelectors.ts",
+            "content": "// The FULL updated content..."
           }
         }
         
-        Leave arrays empty if no new files of that type are needed. Omit markdown formatting outside the JSON.
+        Leave arrays empty if no new files or modifications are needed. Omit markdown formatting outside the JSON.
         `;
 
         console.log("Sending to Gemini for generation...");
 
-        // Using 2.5-flash for excellent speed and JSON structure adherence
         const model = genAI.getGenerativeModel({
             model: "gemini-2.5-flash",
             systemInstruction: systemPrompt
@@ -132,13 +186,13 @@ async function generatePlaywrightTest(issueKey: string) {
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
             generationConfig: {
                 temperature: 0.1,
-                responseMimeType: "application/json" // Strict JSON enforcement
+                responseMimeType: "application/json"
             }
         });
 
-        const responseText = result.response.text();
+        const responseText: string = result.response.text();
         
-        let output;
+        let output: any;
         try {
             output = JSON.parse(responseText);
         } catch (e) {
@@ -149,39 +203,38 @@ async function generatePlaywrightTest(issueKey: string) {
 
         // 1. Write the Test File
         if (output.testFile?.path && output.testFile?.content) {
-            const fullTestPath = path.join(process.cwd(), output.testFile.path);
+            const fullTestPath: string = path.join(process.cwd(), output.testFile.path);
             fs.mkdirSync(path.dirname(fullTestPath), { recursive: true });
             fs.writeFileSync(fullTestPath, output.testFile.content);
             console.log(`✅ Generated Test: ${output.testFile.path}`);
         }
 
-        // 2. Write Page Objects
+        // 2. Write/Update Page Objects
         if (output.pageObjects && Array.isArray(output.pageObjects)) {
             for (const po of output.pageObjects) {
-                const poPath = path.join(process.cwd(), po.path);
+                const poPath: string = path.join(process.cwd(), po.path);
                 fs.mkdirSync(path.dirname(poPath), { recursive: true });
                 fs.writeFileSync(poPath, po.content);
-                console.log(`📄 Generated Page Object: ${po.path}`);
+                console.log(`📄 Generated/Updated Page Object: ${po.path}`);
             }
         }
 
-        // 3. Write Components
+        // 3. Write/Update Components
         if (output.components && Array.isArray(output.components)) {
             for (const comp of output.components) {
-                const compPath = path.join(process.cwd(), comp.path);
+                const compPath: string = path.join(process.cwd(), comp.path);
                 fs.mkdirSync(path.dirname(compPath), { recursive: true });
                 fs.writeFileSync(compPath, comp.content);
-                console.log(`🧩 Generated Component: ${comp.path}`);
+                console.log(`🧩 Generated/Updated Component: ${comp.path}`);
             }
         }
 
-        // 4. Append Selectors
-        if (output.selectors?.appendContent) {
-            const selectorFilePath = path.join(process.cwd(), 'support/testSelectors.ts');
-            fs.mkdirSync(path.dirname(selectorFilePath), { recursive: true });
-            // Add a newline before appending to ensure it doesn't break existing exports
-            fs.appendFileSync(selectorFilePath, `\n${output.selectors.appendContent}\n`);
-            console.log(`📝 Appended new selectors to: support/testSelectors.ts`);
+        // 4. Write/Update Selectors 
+        if (output.selectors?.content) {
+            const targetPath: string = path.join(process.cwd(), output.selectors.path || 'support/testSelectors.ts');
+            fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+            fs.writeFileSync(targetPath, output.selectors.content);
+            console.log(`📝 Updated and merged selectors in: ${targetPath}`);
         }
 
         console.log("🚀 Automation scaffolding complete.");
@@ -192,7 +245,7 @@ async function generatePlaywrightTest(issueKey: string) {
     }
 }
 
-const ticketId = process.argv[2] || process.env.JIRA_TICKET;
+const ticketId: string | undefined = process.argv[2] || process.env.JIRA_TICKET;
 if (!ticketId) {
     console.error("❌ Please provide a Jira Ticket ID (e.g., QA-123).");
     process.exit(1);

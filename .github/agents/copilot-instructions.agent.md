@@ -374,6 +374,7 @@ test('Login Tests with not registered account',{tag:'@full'}, async ({loginForm,
 - **Using page.locator:** Utilize `page.locator()` in combination with the imported selector constants (e.g., `this.page.locator(loginSelectors.email)`).
 - **Handling Missing Selectors:** If a Jira test step requires interacting with an element that does not clearly map to an existing selector, invent a logically named key assuming it will be added to `testSelectors.ts` (e.g., `featureItemsSelectors.newCheckoutButton`).
 - **Web-First Assertions:** Use Playwright's async expectations (`expect(locator).toBeVisible()`, `toHaveText()`) to verify UI states.
+- **Avoid Duplications** Always check if same selector constant already exists in `testSelectors.ts` before suggesting a new one. If it exists, reuse it instead of creating a new constant.
 
 ### Configuration and Environment
 

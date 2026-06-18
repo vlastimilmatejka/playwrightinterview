@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, Schema } from '@google/generative-ai';
+import { exec } from 'child_process';
+import util from 'util';
+
+const execPromise = util.promisify(exec);
 
 const XRAY_CLIENT_ID = process.env.XRAY_CLIENT_ID;
 const XRAY_CLIENT_SECRET = process.env.XRAY_CLIENT_SECRET;
@@ -8,12 +12,17 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Ensure API keys are present
 if (!XRAY_CLIENT_ID || !XRAY_CLIENT_SECRET || !GEMINI_API_KEY) {
-    console.error("❌ Missing required API keys in environment variables. Ensure GEMINI_API_KEY is set.");
+    console.error("❌ Missing required API keys in environment variables.");
     process.exit(1);
 }
 
 // Initialize the Gemini client
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+// ==========================================
+// API HELPERS
+// ==========================================
 
 async function getXrayToken(): Promise<string> {
     console.log("Authenticating with Xray Cloud...");
@@ -29,51 +38,37 @@ async function getXrayToken(): Promise<string> {
 
 async function getTestSteps(token: string, issueKey: string): Promise<any> {
     console.log(`Fetching steps for Xray Test Case: ${issueKey}...`);
-    const query = `
-    {
+    const query = `{
       getTests(jql: "key = '${issueKey}'", limit: 1){
         results {
           jira(fields: ["summary"])
-          steps {
-            action
-            data
-            result
-          }
+          steps { action, data, result }
         }
       }
     }`;
 
     const response = await fetch('https://eu.xray.cloud.getxray.app/api/v2/graphql', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ query })
     });
+    
     const data = await response.json();
-
-    if (data.errors) {
-        console.error("❌ Xray API rejected the request. Details:");
-        console.error(JSON.stringify(data.errors, null, 2));
-        throw new Error("GraphQL Query failed.");
-    }
-
+    if (data.errors) throw new Error("GraphQL Query failed.");
+    
     const results = data?.data?.getTests?.results;
-
-    if (!results || results.length === 0) {
-        console.error(`❌ Zero results found for ${issueKey}.`);
-        throw new Error(`Test case ${issueKey} not found in Xray.`);
-    }
+    if (!results || results.length === 0) throw new Error(`Test case ${issueKey} not found.`);
 
     return results[0];
 }
 
-// --- NEW HELPER: Recursively read existing TS files to provide context ---
-function getExistingTypeScriptFiles(dirPath: string): string {
-    if (!fs.existsSync(dirPath)) return "Directory does not exist.";
-    
-    let output = "";
+// ==========================================
+// FILE SYSTEM & MEMORY HELPERS
+// ==========================================
+
+function getFilePathsList(dirPath: string): string[] {
+    if (!fs.existsSync(dirPath)) return [];
+    let fileList: string[] = [];
     const readDir = (currentPath: string) => {
         const entries = fs.readdirSync(currentPath, { withFileTypes: true });
         for (const entry of entries) {
@@ -81,171 +76,301 @@ function getExistingTypeScriptFiles(dirPath: string): string {
             if (entry.isDirectory()) {
                 readDir(fullPath);
             } else if (entry.isFile() && fullPath.endsWith('.ts')) {
-                const content = fs.readFileSync(fullPath, 'utf-8');
-                const relPath = path.relative(process.cwd(), fullPath);
-                output += `\n### File: ${relPath} ###\n${content}\n`;
+                fileList.push(path.relative(process.cwd(), fullPath));
             }
         }
     };
-    
     readDir(dirPath);
-    return output || "No existing files found in this directory.";
+    return fileList;
 }
+
+function readSpecificFiles(filePaths: string[]): string {
+    let output = "";
+    for (const relativePath of filePaths) {
+        const absolutePath = path.join(process.cwd(), relativePath);
+        if (fs.existsSync(absolutePath)) {
+            const content = fs.readFileSync(absolutePath, 'utf-8');
+            output += `\n### File: ${relativePath} ###\n${content}\n`;
+        }
+    }
+    return output || "No relevant existing Page Objects or Components found. You must create new ones.";
+}
+
+const writeToFile = (filePath: string | undefined, content: string | undefined, label: string) => {
+    if (filePath && content) {
+        const absolutePath = path.join(process.cwd(), filePath);
+        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+        fs.writeFileSync(absolutePath, content);
+        console.log(`${label}: ${filePath}`);
+    }
+};
+
+// --- NEW: Structured Memory System ---
+const MEMORY_PATH = path.join(process.cwd(), '../.github/agents/lessons_learned.json');
+
+type AgentMemory = {
+    locators: string[];
+    waits: string[];
+    api: string[];
+    architecture: string[];
+    general: string[];
+};
+
+function loadMemory(): AgentMemory {
+    if (!fs.existsSync(MEMORY_PATH)) {
+        return { locators: [], waits: [], api: [], architecture: [], general: [] };
+    }
+    return JSON.parse(fs.readFileSync(MEMORY_PATH, 'utf-8'));
+}
+
+function saveMemory(memory: AgentMemory) {
+    fs.mkdirSync(path.dirname(MEMORY_PATH), { recursive: true });
+    fs.writeFileSync(MEMORY_PATH, JSON.stringify(memory, null, 2));
+}
+
+// ==========================================
+// MAIN GENERATION LOGIC
+// ==========================================
 
 async function generatePlaywrightTest(issueKey: string): Promise<void> {
     try {
-        const token: string = await getXrayToken();
+        const token = await getXrayToken();
         const testCase = await getTestSteps(token, issueKey);
 
         const title: string = testCase.jira.summary;
-        const steps: any[] = testCase.steps || [];
-
-        const formattedSteps: string = steps.map((step: any, index: number) => {
-            return `Step ${index + 1}:
-            Action: ${step.action}
-            Data: ${step.data || 'None'}
-            Expected Result: ${step.result || 'None'}`;
+        const formattedSteps: string = (testCase.steps || []).map((step: any, index: number) => {
+            return `Step ${index + 1}:\nAction: ${step.action}\nData: ${step.data || 'None'}\nResult: ${step.result || 'None'}`;
         }).join('\n\n');
 
-        const agentFilePath: string = path.join(process.cwd(), '../.github/agents/copilot-instructions.agent.md');
-        if (!fs.existsSync(agentFilePath)) {
-            throw new Error("agents.md file not found in root directory.");
-        }
-        const systemPrompt: string = fs.readFileSync(agentFilePath, 'utf-8');
+        const agentMemory = loadMemory();
 
-        // Fetch Selectors Context
-        const selectorFilePath: string = path.join(process.cwd(), 'support/testSelectors.ts');
-        let existingSelectors: string = "No existing selectors found.";
-        if (fs.existsSync(selectorFilePath)) {
-            existingSelectors = fs.readFileSync(selectorFilePath, 'utf-8');
-        }
+        // ====================================================================
+        // PASS 1: THE ARCHITECT (Determine Context & Memory Requirements)
+        // ====================================================================
+        console.log("Pass 1: AI is analyzing files and memory requirements...");
+        const allPages = getFilePathsList(path.join(process.cwd(), 'pages'));
+        const allComponents = getFilePathsList(path.join(process.cwd(), 'components'));
+        const availableFiles = [...allPages, ...allComponents];
 
-        // --- NEW: Fetch Page Objects and Components Context ---
-        const pagesPath = path.join(process.cwd(), 'pages');
-        const componentsPath = path.join(process.cwd(), 'components');
-        const existingPages = getExistingTypeScriptFiles(pagesPath);
-        const existingComponents = getExistingTypeScriptFiles(componentsPath);
-
-        const userPrompt: string = `
-        You are an expert QA Automation Engineer.
-        Please write a Playwright E2E test for the following Jira Test Case: ${issueKey} - ${title}.
+        const architectPrompt = `
+        You are an Automation Architect. Automate Jira Test: ${issueKey} - ${title}.
         
-        Here are the manual steps from Xray:
+        Test Steps:
         ${formattedSteps}
 
-        Here is the CURRENT state of the selectors file (support/testSelectors.ts):
+        Available Files:
+        ${JSON.stringify(availableFiles, null, 2)}
+
+        Select the files you need to interact with. Also, select the categories of past memory lessons that are relevant to this test.
+        `;
+
+        // Strict Schema Definition
+        const architectSchema: Schema = {
+            type: SchemaType.OBJECT,
+            properties: {
+                neededFiles: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+                relevantMemoryCategories: {
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING },
+                    description: "Choose from: 'locators', 'waits', 'api', 'architecture', 'general'"
+                }
+            },
+            required: ["neededFiles", "relevantMemoryCategories"]
+        };
+
+        const architectResult = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: architectPrompt }] }],
+            generationConfig: { temperature: 0.1, responseMimeType: "application/json", responseSchema: architectSchema }
+        });
+
+        const parsedArchitect = JSON.parse(architectResult.response.text());
+        const neededFiles: string[] = parsedArchitect.neededFiles || [];
+        const requestedCategories: string[] = parsedArchitect.relevantMemoryCategories || ['general'];
+        
+        console.log(`🧠 AI Context: ${neededFiles.join(', ') || 'None'}`);
+        console.log(`🧠 AI Memory: ${requestedCategories.join(', ')}`);
+
+        // ====================================================================
+        // PASS 2: THE CODER (Generate the actual test)
+        // ====================================================================
+        console.log("Pass 2: AI is writing the code...");
+        
+        const systemPromptPath = path.join(process.cwd(), '../.github/agents/copilot-instructions.agent.md');
+        const baseSystemPrompt = fs.existsSync(systemPromptPath) ? fs.readFileSync(systemPromptPath, 'utf-8') : "";
+
+        // --- INJECT TARGETED MEMORY ---
+        let targetedLessons = "";
+        requestedCategories.forEach(category => {
+            const catKey = category as keyof AgentMemory;
+            if (agentMemory[catKey] && agentMemory[catKey].length > 0) {
+                // Only take the 5 most recent lessons per category to save tokens
+                targetedLessons += `\n### ${category.toUpperCase()} LESSONS ###\n`;
+                targetedLessons += agentMemory[catKey].slice(-5).map(l => `- ${l}`).join('\n');
+            }
+        });
+
+        const systemPrompt = `${baseSystemPrompt}\n\n### CRITICAL LESSONS FROM PAST FAILURES ###\n${targetedLessons || "No specific lessons for these categories yet."}`;
+
+        const targetedContext = readSpecificFiles(neededFiles);
+        const selectorPath = path.join(process.cwd(), 'support/testSelectors.ts');
+        const existingSelectors = fs.existsSync(selectorPath) ? fs.readFileSync(selectorPath, 'utf-8') : "No existing selectors.";
+        const fixturesPath = path.join(process.cwd(), 'support/fixtures.ts');
+        const existingFixtures = fs.existsSync(fixturesPath) ? fs.readFileSync(fixturesPath, 'utf-8') : "No existing fixtures.";
+
+        const coderModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash", systemInstruction: systemPrompt });
+        const chatSession = coderModel.startChat({
+            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+        });
+
+        const initialPrompt = `
+        You are an expert QA Automation Engineer. Write a Playwright E2E test for: ${issueKey} - ${title}.
+        
+        Manual steps:
+        ${formattedSteps}
+
+        Requested Files Code:
+        ---
+        ${targetedContext}
+        ---
+
+        Existing testSelectors.ts:
         ---
         ${existingSelectors}
         ---
-        CRITICAL RULE FOR SELECTORS: If a new selector belongs to an existing category, you MUST merge the new key-value pair into the existing object. Output the ENTIRE updated content of the file.
 
-        Here is the CURRENT state of existing Page Objects:
+        Existing fixtures.ts:
         ---
-        ${existingPages}
-        ---
-
-        Here is the CURRENT state of existing Components:
-        ---
-        ${existingComponents}
+        ${existingFixtures}
         ---
         
-        CRITICAL RULE FOR PAGE OBJECTS & COMPONENTS: 
-        1. If you need to interact with the UI, check the existing Page Objects and Components first and USE existing methods.
-        2. If you MUST add a new method to an existing Page Object or Component, you MUST output the ENTIRE file content in your JSON response, preserving ALL existing methods, properties, and imports exactly as they are. DO NOT delete existing methods.
-        3. Only generate entirely new files if the domain/page does not conceptually fit into the existing files.
+        CRITICAL RULES:
+        1. Use existing methods if they exist.
+        2. Merge new selectors into existing objects in testSelectors.ts. Do NOT duplicate constants.
+        3. If you modify an existing Page Object or Component, output the ENTIRE updated file content.
 
-        You MUST output ONLY a valid JSON object matching this exact schema:
+        Return JSON matching this exact schema:
         {
-          "testFile": {
-            "path": "tests/e2e/${issueKey.toLowerCase()}.test.ts",
-            "content": "// Playwright test code..."
-          },
-          "pageObjects": [
-            { "path": "pages/example.page.ts", "content": "// The FULL content of the file, preserving old methods..." }
-          ],
-          "components": [
-            { "path": "components/example.component.ts", "content": "// The FULL content of the file, preserving old methods..." }
-          ],
-          "selectors": {
-            "path": "support/testSelectors.ts",
-            "content": "// The FULL updated content..."
-          }
+          "testFile": { "path": "tests/e2e/qa-123.test.ts", "content": "code" },
+          "pageObjects": [ { "path": "pages/...", "content": "code" } ],
+          "components": [ { "path": "components/...", "content": "code" } ],
+          "selectors": { "path": "support/...", "content": "code" },
+          "fixtures": { "path": "support/...", "content": "code" }
         }
-        
-        Leave arrays empty if no new files or modifications are needed. Omit markdown formatting outside the JSON.
         `;
 
-        console.log("Sending to Gemini for generation...");
+        let chatResult = await chatSession.sendMessage(initialPrompt);
+        let output = JSON.parse(chatResult.response.text());
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            systemInstruction: systemPrompt
-        });
+        let testFilePath = output.testFile?.path;
 
-        const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-            generationConfig: {
-                temperature: 0.1,
-                responseMimeType: "application/json"
+        writeToFile(testFilePath, output.testFile?.content, "✅ Generated Test");
+        if (output.selectors?.content) writeToFile(output.selectors.path || 'support/testSelectors.ts', output.selectors.content, "📝 Updated Selectors");
+        if (output.fixtures?.content) writeToFile(output.fixtures.path || 'support/fixtures.ts', output.fixtures.content, "🔧 Updated Fixtures");
+        (output.pageObjects || []).forEach((po: any) => writeToFile(po.path, po.content, "📄 Updated Page Object"));
+        (output.components || []).forEach((co: any) => writeToFile(co.path, co.content, "🧩 Updated Component"));
+
+        // ====================================================================
+        // PASS 3: THE EXECUTION & FEEDBACK LOOP
+        // ====================================================================
+        const MAX_ATTEMPTS = 3;
+        let testPassed = false;
+        let attempt = 1;
+
+        for (; attempt <= MAX_ATTEMPTS; attempt++) {
+            console.log(`\n▶️ Running Playwright Test (Attempt ${attempt}/${MAX_ATTEMPTS})...`);
+            
+            try {
+                const { stdout } = await execPromise(`npx playwright test ${testFilePath}`);
+                console.log(`\n✅ TEST PASSED ON ATTEMPT ${attempt}!`);
+                console.log(stdout);
+                testPassed = true;
+                break; 
+
+            } catch (error: any) {
+                console.log(`\n❌ TEST FAILED. Gathering logs for AI analysis...`);
+                const errorLog = (error.stdout + "\n" + error.stderr).substring(0, 5000); 
+
+                if (attempt === MAX_ATTEMPTS) {
+                    console.error("🚨 Max attempts reached. Manual review required.");
+                    console.log(errorLog);
+                    break;
+                }
+
+                console.log("Sending error logs to Gemini for self-correction...");
+                const correctionPrompt = `
+                The test failed. Error output:
+                ---
+                ${errorLog}
+                ---
+                Analyze the error and fix the code. Return the ENTIRE updated JSON payload matching the exact same schema.
+                `;
+
+                chatResult = await chatSession.sendMessage(correctionPrompt);
+                output = JSON.parse(chatResult.response.text());
+
+                console.log("Overwriting files with AI corrections...");
+                writeToFile(testFilePath, output.testFile?.content, "✅ Fixed Test");
+                if (output.selectors?.content) writeToFile(output.selectors.path, output.selectors.content, "📝 Fixed Selectors");
+                if (output.fixtures?.content) writeToFile(output.fixtures.path, output.fixtures.content, "🔧 Fixed Fixtures");
+                (output.pageObjects || []).forEach((po: any) => writeToFile(po.path, po.content, "📄 Fixed Page Object"));
+                (output.components || []).forEach((co: any) => writeToFile(co.path, co.content, "🧩 Fixed Component"));
             }
-        });
-
-        const responseText: string = result.response.text();
-        
-        let output: any;
-        try {
-            output = JSON.parse(responseText);
-        } catch (e) {
-            console.error("❌ Failed to parse AI response as JSON. Raw response:");
-            console.log(responseText);
-            process.exit(1);
         }
 
-        // 1. Write the Test File
-        if (output.testFile?.path && output.testFile?.content) {
-            const fullTestPath: string = path.join(process.cwd(), output.testFile.path);
-            fs.mkdirSync(path.dirname(fullTestPath), { recursive: true });
-            fs.writeFileSync(fullTestPath, output.testFile.content);
-            console.log(`✅ Generated Test: ${output.testFile.path}`);
-        }
+        // ====================================================================
+        // PASS 4: EXTRACT & SAVE NEW MEMORY (If corrected)
+        // ====================================================================
+        if (testPassed && attempt > 1) {
+            console.log("\n🧠 Extracting structured lesson for persistent memory...");
+            
+            const memorySchema: Schema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    category: { type: SchemaType.STRING, description: "Must be: 'locators', 'waits', 'api', 'architecture', or 'general'" },
+                    lesson: { type: SchemaType.STRING, description: "A concise 1-sentence rule to prevent this mistake." }
+                },
+                required: ["category", "lesson"]
+            };
 
-        // 2. Write/Update Page Objects
-        if (output.pageObjects && Array.isArray(output.pageObjects)) {
-            for (const po of output.pageObjects) {
-                const poPath: string = path.join(process.cwd(), po.path);
-                fs.mkdirSync(path.dirname(poPath), { recursive: true });
-                fs.writeFileSync(poPath, po.content);
-                console.log(`📄 Generated/Updated Page Object: ${po.path}`);
+            const lessonPrompt = `
+            You successfully fixed a failing test. 
+            Write a SINGLE concise rule to prevent this specific mistake in the future.
+            Categorize it accurately.
+            `;
+
+            try {
+                const lessonResult = await model.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: lessonPrompt }] }],
+                    generationConfig: { temperature: 0.2, responseMimeType: "application/json", responseSchema: memorySchema }
+                });
+
+                const newMemory = JSON.parse(lessonResult.response.text());
+                const category = newMemory.category as keyof AgentMemory;
+                
+                // Ensure valid category fallback
+                const safeCategory = agentMemory[category] ? category : 'general';
+                
+                // Add lesson and save
+                agentMemory[safeCategory].push(newMemory.lesson);
+                saveMemory(agentMemory);
+                
+                console.log(`📝 Added to [${safeCategory}] memory: ${newMemory.lesson}`);
+            } catch (e) {
+                console.warn("⚠️ Failed to save structured memory lesson.");
             }
         }
-
-        // 3. Write/Update Components
-        if (output.components && Array.isArray(output.components)) {
-            for (const comp of output.components) {
-                const compPath: string = path.join(process.cwd(), comp.path);
-                fs.mkdirSync(path.dirname(compPath), { recursive: true });
-                fs.writeFileSync(compPath, comp.content);
-                console.log(`🧩 Generated/Updated Component: ${comp.path}`);
-            }
-        }
-
-        // 4. Write/Update Selectors 
-        if (output.selectors?.content) {
-            const targetPath: string = path.join(process.cwd(), output.selectors.path || 'support/testSelectors.ts');
-            fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-            fs.writeFileSync(targetPath, output.selectors.content);
-            console.log(`📝 Updated and merged selectors in: ${targetPath}`);
-        }
-
-        console.log("🚀 Automation scaffolding complete.");
 
     } catch (error) {
-        console.error("❌ Error generating test:", error);
+        console.error("❌ Error in generation loop:", error);
         process.exit(1);
     }
 }
 
-const ticketId: string | undefined = process.argv[2] || process.env.JIRA_TICKET;
+// ==========================================
+// EXECUTION TRIGGER
+// ==========================================
+
+const ticketId = process.argv[2] || process.env.JIRA_TICKET;
 if (!ticketId) {
     console.error("❌ Please provide a Jira Ticket ID (e.g., QA-123).");
     process.exit(1);

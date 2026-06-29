@@ -219,48 +219,22 @@ export const cartSelectors = {
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
-
-// Only load .env if not running in CI
 if (!process.env.CI) {
   dotenv.config();
 }
 
 export default defineConfig({
-  //testDir: './tests',
-
   testMatch: '**/*.{spec,accessibility,test}.ts',
-
   expect: {
-    timeout: 5000, // 5 seconds for expect()
+    timeout: 5000,
   },
-
-  /* Run tests in files in parallel */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
-  //forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
   retries: process.env.CI ? 1 : 0,
-  /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 3 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { open: 'always' }],
   ],
-
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
     screenshot: 'only-on-failure',
     baseURL:
       process.env.BASE_URL === 'QA'
@@ -272,27 +246,21 @@ export default defineConfig({
 
     viewport: { width: 1920, height: 1080 },
     headless: true,
-    locale: 'cs-CZ',               // Czech locale
-    timezoneId: 'Europe/Prague',   // Timezone for Prague
-    geolocation: { longitude: 14.418540, latitude: 50.073658 }, // geolocation for Prague
+    locale: 'cs-CZ',
+    timezoneId: 'Europe/Prague',
+    geolocation: { longitude: 14.418540, latitude: 50.073658 },
     permissions: ['geolocation'],
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-
-  /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
@@ -300,6 +268,11 @@ export default defineConfig({
   ]
 });
 ```
+
+## Lessons Learned & Error Prevention
+1. **Selector Import Verification**: Always verify that every selector object used in a test file or Page Object Model is explicitly imported from `../../support/testSelectors.ts`. A `ReferenceError` occurs if the constant is used without a corresponding `import` statement.
+2. **Strict Import Compliance**: Before writing code, scan the required selectors and ensure the `import { ... } from '../../support/testSelectors';` line is present at the top of the file.
+
 ## Jira/Xray Test Translation Guidelines
 
 When receiving manual test steps from Jira/Xray (Action, Data, Expected Result), you MUST format the Playwright test using the following rules:
@@ -318,46 +291,6 @@ test('User can complete checkout process', { tag: '@QA-123' }, async ({ page }) 
 ### 4. Handling Unknown Locators
 If the prompt does not provide the specific Page Object Model (POM) methods for the test, use Playwright's semantic locators directly on the page object (e.g., `page.getByRole('button', { name: 'Submit' })`). Do NOT invent or hallucinate POM classes or methods that haven't been provided in the context.
 
-## Example Input to Output Translation
-
-### User Prompt (Jira Xray Input)
-**Test ID**: QA-456
-**Summary**: Successful Login
-**Steps**:
-1. **Action**: Navigate to the login page. **Expected**: Login page is displayed.
-2. **Action**: Enter email "test@example.com" and password "Pass123!". **Data**: test@example.com, Pass123!
-3. **Action**: Click the Login button. **Expected**: User is redirected to the dashboard and sees "Welcome back".
-
-### Agent Expected Output
-```typescript
-import {expect} from '@playwright/test';
-import { test } from '../../support/fixtures';
-import { validAccount, validEmailInvalidPassword, notRegisteredAccount } from '../../constants/login.const';
-import { mainMenuItemsLoggedInEN, mainMenuItemsNotLoggedEN} from '../../constants/Languages/EN/mainMenuENtranslations.const';
-import { mainMenuSelectors } from '../../support/testSelectors';
-
-test.beforeEach(async ({ page, gdpr, signUpLoginPage }) => {
-    await page.goto(signUpLoginPage.getURL(test.info()));
-    await gdpr.agree().click();
-    await expect(gdpr.self()).toBeHidden();
-});
-
-test('Login Tests with valid credentials',{tag:'@full'}, async ({loginForm, signUpLoginPage}) => {
-    await loginForm.login(validAccount.email, validAccount.password);
-    await signUpLoginPage.mainMenu().checkElements(mainMenuSelectors.menuItem, mainMenuItemsLoggedInEN);
-});
-
-test('Login Tests with invalid credentials',{tag:'@full'}, async ({ loginForm, mainMenu }) => {
-    await loginForm.login(validEmailInvalidPassword.email, validEmailInvalidPassword.password);
-    await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
-});
-
-test('Login Tests with not registered account',{tag:'@full'}, async ({loginForm, mainMenu}) => {
-    await loginForm.login(notRegisteredAccount.email, notRegisteredAccount.password);
-    await mainMenu.checkElements(mainMenuSelectors.menuItem, mainMenuItemsNotLoggedEN);
-});
-```
-
 ## Best Practices Summary
 
 ### Test Design and Structure
@@ -366,7 +299,7 @@ test('Login Tests with not registered account',{tag:'@full'}, async ({loginForm,
 - **Utilize Playwright fixtures** (test, page, expect) to maintain test isolation and consistency
 - **Use test.beforeEach and test.afterEach** for setup and teardown to ensure clean state
 - **Keep tests DRY** by extracting reusable logic into helper functions
-- **Focus on critical user paths** with tests that are stable, maintainable, and refl  ect real user behavior
+- **Focus on critical user paths** with tests that are stable, maintainable, and reflect real user behavior
 
 ### Locator Strategy
 
